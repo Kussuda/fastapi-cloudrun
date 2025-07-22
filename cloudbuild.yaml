@@ -1,0 +1,32 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'us-east1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/ryan-api-fastapi:${_TAG_NAME}', '.']
+
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'us-east1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/ryan-api-fastapi:${_TAG_NAME}']
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  args:
+  - 'run'
+  - 'deploy'
+  - 'ryan-api-fastapi-service' # <--- NOME DO SEU SERVIÇO CLOUD RUN
+  - '--image'
+  - 'us-east1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/ryan-api-fastapi:${_TAG_NAME}'
+  - '--region'
+  - 'us-east1' # <--- REGIÃO DO SEU SERVIÇO CLOUD RUN
+  - '--platform'
+  - 'managed'
+  - '--allow-unauthenticated'
+  env:
+  - 'CLOUDSDK_CORE_PROJECT=${_PROJECT_ID}' # Garante que o gcloud use o ID do projeto correto
+
+# Define as imagens que serão criadas por este build.
+# Isso é usado pelo Cloud Build para rastrear as imagens geradas.
+images:
+- 'us-east1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/ryan-api-fastapi:${_TAG_NAME}'
+
+# Variáveis de substituição que podem ser usadas nos passos.
+# '_TAG_NAME' será 'latest' neste caso.
+substitutions:
+  _TAG_NAME: 'latest'
